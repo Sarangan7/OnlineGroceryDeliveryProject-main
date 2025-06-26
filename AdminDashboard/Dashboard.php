@@ -14,6 +14,8 @@
     <script src="js/script.js"></script>
     <link rel="icon" type="image/x-icon" href="../images/logo-icon.jpeg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -73,20 +75,20 @@
 
         <div class="home-content">
             <div class="overview-boxes">
-
                 <div class="box">
                     <div class="right-side">
                         <div class="box-topic">Total Customers</div>
                         <div class="number">
                             <?php
-                            $con=new mysqli("localhost", "root", "", "quickart");
-                                $qry="SELECT* FROM customer";
-                                $xyz=mysqli_query($con, $qry);
-                                $row=mysqli_num_rows($xyz);
-                                echo $row;
+                                $qry = "SELECT COUNT(*) as count FROM customer";
+                                $xyz = mysqli_query($con, $qry);
+                                $result = $xyz->fetch_assoc();
+                                echo $result['count'];
                             ?>
-                            </div>
-                      
+                        </div>
+                    </div>
+                    <div class="cart">
+                        <i class="fas fa-users"></i>
                     </div>
                 </div>
 
@@ -94,13 +96,50 @@
                     <div class="right-side">
                         <div class="box-topic">Total Products</div>
                         <div class="number">
-                        <?php
-                                $qry2="SELECT* FROM products";
-                                $xyz=mysqli_query($con, $qry2);
-                                $row=mysqli_num_rows($xyz);
-                                echo $row;
+                            <?php
+                                $qry2 = "SELECT COUNT(*) as count FROM products";
+                                $xyz = mysqli_query($con, $qry2);
+                                $result = $xyz->fetch_assoc();
+                                echo $result['count'];
                             ?>
                         </div>
+                    </div>
+                    <div class="cart">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+
+                <div class="box">
+                    <div class="right-side">
+                        <div class="box-topic">Total Feedback</div>
+                        <div class="number">
+                            <?php
+                                $qry3 = "SELECT COUNT(*) as count FROM feedback";
+                                $xyz = mysqli_query($con, $qry3);
+                                $result = $xyz->fetch_assoc();
+                                echo $result['count'];
+                            ?>
+                        </div>
+                    </div>
+                    <div class="cart">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                </div>
+
+                <div class="box">
+                    <div class="right-side">
+                        <div class="box-topic">Unread Feedback</div>
+                        <div class="number">
+                            <?php
+                                $qry4 = "SELECT COUNT(*) as count FROM feedback WHERE response = 0";
+                                $xyz = mysqli_query($con, $qry4);
+                                $result = $xyz->fetch_assoc();
+                                echo $result['count'];
+                            ?>
+                        </div>
+                    </div>
+                    <div class="cart">
+                        <i class="fas fa-bell"></i>
                     </div>
                 </div>
             </div>
@@ -109,31 +148,33 @@
                 <div class="dashboard box">
                     <div class="title">Recent Unread Feedback</div>
                     <div class="sales-details">
-                        
-                    <table>                           
-                                <?php
-                                    $qry= "SELECT* FROM feedback WHERE response=0 ORDER BY feedbackID DESC";
-                                    $xyz=mysqli_query($con, $qry);
-                                    $rowCount=mysqli_num_rows($xyz);
-                                    if($rowCount<1){
-                                        echo "No Unread Feedback";
+                        <table>                           
+                            <?php
+                                $qry = "SELECT * FROM feedback WHERE response=0 ORDER BY feedbackID DESC LIMIT 5";
+                                $xyz = mysqli_query($con, $qry);
+                                $rowCount = mysqli_num_rows($xyz);
+                                
+                                if($rowCount < 1){
+                                    echo '<tr><td colspan="3" style="text-align: center; color: #999; padding: 30px;">No Unread Feedback</td></tr>';
+                                } else {
+                                    echo '<tr><th class="topic">Date</th><th class="topic">Name</th><th class="topic">Details</th></tr>';
+                                    
+                                    while($collect = $xyz->fetch_assoc()){
+                                        echo "<tr>";
+                                        echo "<td>" . date('M d, Y', strtotime($collect['Ftime'])) . "</td>";
+                                        echo "<td>" . htmlspecialchars($collect['cName']) . "</td>";
+                                        echo "<td>" . htmlspecialchars(substr($collect['feedback'], 0, 50)) . "...</td>";
+                                        echo "</tr>";
                                     }
-                                    else{
-                                        echo '<tr><th class="topic">Date</th><th class="topic">Name</th><th class="topic">Details</th></tr>';
-        
-                                        while($collect=$xyz->fetch_assoc()){
-                                        echo "<tr><td>".$collect['Ftime'];
-                                        echo "</td><td>".$collect['cName'];
-                                        echo "</td><td>".$collect['feedback'];
-                                        echo "</td></tr>";
-                                        }
-                                    }
-                                    mysqli_close($con);
-                                ?>
-                                </table>
+                                }
+                                mysqli_close($con);
+                            ?>
+                        </table>
                     </div>
                     <div class="button">
-                        <a href="Feedback.php">See All</a>
+                        <a href="Feedback.php">
+                            <i class="fas fa-eye"></i> View All Feedback
+                        </a>
                     </div>
                 </div>
             </div>

@@ -14,6 +14,8 @@
     <link rel="icon" type="image/x-icon" href="../images/logo-icon.jpeg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="js/script.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -72,66 +74,62 @@
         </nav>
 
         <div class="home-content">
+            <div class="sales-boxes">
+                <div class="profile-box box">
+                    <div class="title">
+                        <i class="fas fa-user-cog"></i> Admin Profile Settings
+                    </div>
+                    <div class="sales-details">
+                        <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+                            <div class="field input-field">
+                                <input type="password" placeholder="Enter current password" class="password" name="oldPassword" required>
+                            </div>
+                            <div class="field input-field">
+                                <input type="password" placeholder="Enter new password" class="password" name="newPassword" required>
+                            </div>
+                            <div class="field input-field">
+                                <input type="password" placeholder="Confirm new password" class="password" name="newPassword2" required>
+                            </div>
+                        
+                            <div class="field button-field">
+                                <button type="submit" name="change">
+                                    <i class="fas fa-key"></i> Change Password
+                                </button>
+                            </div>
+                        </form>
 
-<div class="sales-boxes">
-    <div class="profile-box box">
-        <div class="title">Change Password</div>
-        <div class="sales-details">
+                        <?php
+                            if(isset($_POST['change'])){
+                                $oldPass = $_POST['oldPassword'];
+                                $newPass = $_POST['newPassword'];
+                                $conPass = $_POST['newPassword2'];
+                                $qry1 = "SELECT * FROM account WHERE AccID=1"; 
 
-            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
-            <div class="field input-field">
-                <input type="password" placeholder="Enter old password" class="password" name="oldPassword" required>
-            </div>
-            <div class="field input-field">
-                <input type="password" placeholder="Enter new password" class="password" name="newPassword" required>
-            </div>
-            <div class="field input-field">
-                <input type="password" placeholder="Confirm new password" class="password" name="newPassword2" required>
-            </div>
+                                $res = $con->query($qry1);
+                                $personDetail = $res->fetch_assoc();
+
+                                if($oldPass == $personDetail['AccPassword'] && $newPass == $conPass){
+                                    $qry2 = "UPDATE account SET AccPassword='".$newPass."' WHERE AccID=1";
         
-            <div class="field button-field">
-                <button type="submit" name="change">Change</button>
+                                    if($con->query($qry2) === TRUE){
+                                        echo '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Password changed successfully!</div>';
+                                    } else {
+                                        echo '<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> Something went wrong! Please try again.</div>';
+                                    }
+                                } else if($oldPass == $personDetail['AccPassword']){
+                                    echo '<div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> New passwords do not match!</div>';
+                                } else {
+                                    echo '<div class="alert alert-error"><i class="fas fa-times-circle"></i> Current password is incorrect!</div>';
+                                }
+                            }
+
+                            mysqli_close($con);
+                        ?>
+                    </div>
+                </div>
             </div>
-            </form>
-
-            <?php
-
-                if(isset($_POST['change'])){
-                    $oldPass=$_POST['oldPassword'];
-                    $newPass=$_POST['newPassword'];
-                    $conPass=$_POST['newPassword2'];
-                    $qry1="SELECT * FROM account WHERE AccID=1"; 
-
-                $res=$con->query($qry1);
-                $personDetail=$res->fetch_assoc();
-
-                if($oldPass==$personDetail['AccPassword'] && $newPass==$conPass){
-                    $qry2="UPDATE account SET AccPassword='".$newPass."' WHERE AccID=1";
-    
-                    if($con->query($qry2)===TRUE){
-                        echo '<script>alert("Password Changed")</script>';
-                    }
-                    else{
-                        echo '<script>alert("Something went wrong!! Try Again")</script>';
-                    }
-                }
-                else if($oldPass==$personDetail['AccPassword']){
-                    echo '<script>alert("Passwords didn\'t match!!")</script>';
-                }
-                else{
-                    echo '<script>alert("Old Password is wrong!!")</script>';
-                }
-            }
-
-            mysqli_close($con);
-            ?>
-
-            
         </div>
-    </div>
-</div>
-</div>
-</section>
+    </section>
 
 </body>
 

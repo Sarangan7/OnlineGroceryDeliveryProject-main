@@ -14,6 +14,8 @@ include('../config.php');
     <script src="js/script.js"></script>
     <link rel="icon" type="image/x-icon" href="../images/logo-icon.jpeg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -59,7 +61,7 @@ include('../config.php');
         <nav>
         <form action="#" method="get">
             <div class="search-box">
-            <input type="text" placeholder="Search..." name="search">
+            <input type="text" placeholder="Search customers..." name="search">
             <button type="submit">
             <img src="../icons/search.png" alt="" class="icon">
             </button>
@@ -72,50 +74,81 @@ include('../config.php');
         </nav>
 
         <div class="home-content">
-
             <div class="sales-boxes">
                 <div class="product-list box">
-                    <div class="title">Customer Details</div>
+                    <div class="title">Customer Management</div>
                     <div class="sales-details">
                         <table>
                             <tr>
                                 <th class="topic">Customer ID</th>
                                 <th class="topic">First Name</th>
                                 <th class="topic">Last Name</th>
+                                <th class="topic">Email</th>
                                 <th class="topic">Address</th>
                                 <th class="topic">Phone</th>
-                                <th class="topic">Edit</th>
+                                <th class="topic">Actions</th>
                             </tr>
 
-                            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get">
-                                <?php
-                                    $xyx=mysqli_query($con, "SELECT* FROM customer");
-
-                                    while($collect=$xyx->fetch_assoc()){
-                                        echo "<tr><td>".$collect['customerID'];
-                                        echo "</td><td>".$collect['firstName'];
-                                        echo "</td><td>".$collect['lastName'];
-                                        echo "</td><td>".$collect['address'];
-                                        echo "</td><td>".$collect['phone'];
-                                        echo '</td><td><button type="submit" name="delete" value="'.$collect['AccID'].'" id="edit-btn">Del</button></td></tr>';
-                                        if(isset($_GET['delete'])){
-                                            $qry2="DELETE FROM customer WHERE AccID=".$_GET['delete'];
-                                            $qry3="DELETE FROM account WHERE AccID=".$_GET['delete'];
-                                            $con->query($qry2);
-                                            $con->query($qry3);
-                                            header('Location:Customer.php');
-                                        }
-                                    }
-                                    mysqli_close($con);
-                                ?>
-                                </form>
+                            <?php
+                                // Handle customer deletion
+                                if(isset($_GET['delete'])){
+                                    $customerId = $_GET['delete'];
+                                    $qry2 = "DELETE FROM customer WHERE AccID = $customerId";
+                                    $qry3 = "DELETE FROM account WHERE AccID = $customerId";
                                     
+                                    if($con->query($qry2) && $con->query($qry3)) {
+                                        echo '<script>alert("Customer deleted successfully!"); window.location.href="Customer.php";</script>';
+                                    } else {
+                                        echo '<script>alert("Error deleting customer!");</script>';
+                                    }
+                                }
+
+                                // Display customers with their account information
+                                $qry = "SELECT c.*, a.AccEmail FROM customer c 
+                                       LEFT JOIN account a ON c.AccID = a.AccID 
+                                       ORDER BY c.customerID DESC";
+                                $xyx = mysqli_query($con, $qry);
+
+                                if($xyx && mysqli_num_rows($xyx) > 0) {
+                                    while($collect = $xyx->fetch_assoc()){
+                                        echo "<tr>";
+                                        echo "<td>" . htmlspecialchars($collect['customerID']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($collect['firstName']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($collect['lastName'] ?? 'N/A') . "</td>";
+                                        echo "<td>" . htmlspecialchars($collect['AccEmail'] ?? 'N/A') . "</td>";
+                                        echo "<td>" . htmlspecialchars($collect['address'] ?? 'N/A') . "</td>";
+                                        echo "<td>" . htmlspecialchars($collect['phone'] ?? 'N/A') . "</td>";
+                                        echo '<td>';
+                                        echo '<button type="button" onclick="viewCustomer('.$collect['AccID'].')" class="action-btn success-btn" style="margin-right: 5px;"><i class="fas fa-eye"></i> View</button>';
+                                        echo '<button type="button" onclick="deleteCustomer('.$collect['AccID'].')" class="action-btn"><i class="fas fa-trash"></i> Delete</button>';
+                                        echo '</td>';
+                                        echo "</tr>";
+                                    }
+                                } else {
+                                    echo '<tr><td colspan="7" style="text-align: center; color: #999; padding: 30px;">No customers found</td></tr>';
+                                }
+                                
+                                mysqli_close($con);
+                            ?>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <script>
+        function deleteCustomer(customerId) {
+            if(confirm('Are you sure you want to delete this customer? This action cannot be undone and will also delete their account.')) {
+                window.location.href = 'Customer.php?delete=' + customerId;
+            }
+        }
+
+        function viewCustomer(customerId) {
+            // You can implement view customer details functionality here
+            alert('View customer details functionality can be implemented here for customer ID: ' + customerId);
+        }
+    </script>
 
 </body>
 
