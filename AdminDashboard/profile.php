@@ -1,7 +1,7 @@
 <?php
     include('../config.php');
-    if(!isset($_SESSION['email'])){
-        header('location:../login.php');
+    if(!isset($_SESSION['email']) || $_SESSION['AccountID'] != "Admin"){
+        header('location:../adminLogin.php');
     }
 ?>
 <!DOCTYPE html>
@@ -66,7 +66,7 @@
             </div>
         </form>
             <div class="profile-details">
-                <img src="../icons/admin.png"" class="icon">
+                <img src="../icons/admin.png" class="icon">
                 <a href="profile.php"><span class="admin_name">Admin </span></a>
             </div>
         </nav>
