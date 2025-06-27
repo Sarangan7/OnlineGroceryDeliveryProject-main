@@ -84,8 +84,9 @@ include('../config.php');
                                 <th class="topic">First Name</th>
                                 <th class="topic">Last Name</th>
                                 <th class="topic">Email</th>
-                                <th class="topic">Address</th>
                                 <th class="topic">Phone</th>
+                                <th class="topic">City</th>
+                                <th class="topic">Total Orders</th>
                                 <th class="topic">Actions</th>
                             </tr>
 
@@ -103,9 +104,17 @@ include('../config.php');
                                     }
                                 }
 
-                                // Display customers with their account information
-                                $qry = "SELECT c.*, a.AccEmail FROM customer c 
+                                // Display customers with their account information and order count
+                                $qry = "SELECT c.*, a.AccEmail, 
+                                       COALESCE(order_count.total_orders, 0) as total_orders
+                                       FROM customer c 
                                        LEFT JOIN account a ON c.AccID = a.AccID 
+                                       LEFT JOIN (
+                                           SELECT customerID, COUNT(*) as total_orders 
+                                           FROM orders 
+                                           GROUP BY customerID
+                                       ) order_count ON c.customerID = order_count.customerID
+                                       WHERE a.AccID != 1
                                        ORDER BY c.customerID DESC";
                                 $xyx = mysqli_query($con, $qry);
 
@@ -116,8 +125,9 @@ include('../config.php');
                                         echo "<td>" . htmlspecialchars($collect['firstName']) . "</td>";
                                         echo "<td>" . htmlspecialchars($collect['lastName'] ?? 'N/A') . "</td>";
                                         echo "<td>" . htmlspecialchars($collect['AccEmail'] ?? 'N/A') . "</td>";
-                                        echo "<td>" . htmlspecialchars($collect['address'] ?? 'N/A') . "</td>";
                                         echo "<td>" . htmlspecialchars($collect['phone'] ?? 'N/A') . "</td>";
+                                        echo "<td>" . htmlspecialchars($collect['city'] ?? 'N/A') . "</td>";
+                                        echo "<td>" . htmlspecialchars($collect['total_orders']) . "</td>";
                                         echo '<td>';
                                         echo '<button type="button" onclick="viewCustomer('.$collect['AccID'].')" class="action-btn success-btn" style="margin-right: 5px;"><i class="fas fa-eye"></i> View</button>';
                                         echo '<button type="button" onclick="deleteCustomer('.$collect['AccID'].')" class="action-btn"><i class="fas fa-trash"></i> Delete</button>';
@@ -125,7 +135,7 @@ include('../config.php');
                                         echo "</tr>";
                                     }
                                 } else {
-                                    echo '<tr><td colspan="7" style="text-align: center; color: #999; padding: 30px;">No customers found</td></tr>';
+                                    echo '<tr><td colspan="8" style="text-align: center; color: #999; padding: 30px;">No customers found</td></tr>';
                                 }
                                 
                                 mysqli_close($con);
@@ -137,16 +147,49 @@ include('../config.php');
         </div>
     </section>
 
+    <!-- Customer Details Modal -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCustomerModal()">&times;</span>
+            <h2 style="margin-bottom: 20px; color: #333;">Customer Details</h2>
+            <div id="customerDetails">
+                <!-- Customer details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
     <script>
         function deleteCustomer(customerId) {
-            if(confirm('Are you sure you want to delete this customer? This action cannot be undone and will also delete their account.')) {
+            if(confirm('Are you sure you want to delete this customer? This action cannot be undone and will also delete their account and order history.')) {
                 window.location.href = 'Customer.php?delete=' + customerId;
             }
         }
 
         function viewCustomer(customerId) {
-            // You can implement view customer details functionality here
-            alert('View customer details functionality can be implemented here for customer ID: ' + customerId);
+            // Show modal
+            document.getElementById('customerModal').style.display = 'block';
+            
+            // Load customer details via AJAX
+            fetch('get_customer_details.php?customer_id=' + customerId)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('customerDetails').innerHTML = data;
+                })
+                .catch(error => {
+                    document.getElementById('customerDetails').innerHTML = '<p style="color: red;">Error loading customer details.</p>';
+                });
+        }
+
+        function closeCustomerModal() {
+            document.getElementById('customerModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            var modal = document.getElementById('customerModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
         }
     </script>
 
